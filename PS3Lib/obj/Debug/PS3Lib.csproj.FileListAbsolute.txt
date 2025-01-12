@@ -1,0 +1,11 @@
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\bin\Debug\PS3Lib.dll
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\bin\Debug\PS3Lib.pdb
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.csproj.AssemblyReference.cache
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.Properties.Resources.resources
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.csproj.GenerateResource.cache
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.csproj.CoreCompileInputs.cache
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.dll
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.pdb
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\bin\Debug\Memory.dll
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.AttachDialog.resources
+C:\Users\knms360\source\repos\PS3Lib\PS3Lib\obj\Debug\PS3Lib.csproj.Up2Date
