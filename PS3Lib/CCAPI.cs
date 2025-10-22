@@ -32,8 +32,9 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.Win32;
 using System.Security.Cryptography;
-using Memory;
+
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Diagnostics;
 
 namespace PS3Lib
 {
@@ -126,7 +127,7 @@ namespace PS3Lib
             ShutDown
         }
 
-        public static Mem mem = new Mem();
+        public static Process proc = null;
         private S::Media.SoundPlayer player = null;
         public CCAPI()
         {
@@ -295,7 +296,7 @@ namespace PS3Lib
         /// <summary>Get the status of the console.</summary>
         public int GetConnectionStatus()
         {
-            if (mem.mProc.Process != null)
+            if (proc != null)
             {
                 return 0;
             }
@@ -305,17 +306,23 @@ namespace PS3Lib
         /// <summary>Disconnect your console.</summary>
         public int DisconnectTarget()
         {
-            mem.CloseProcess();
+            proc = null;
             return 0;
         }
 
         /// <summary>Attach the default process (Current Game).</summary>
         public int AttachProcess()
         {
+            Process temp = proc;
             AttachDialog attachDialog = new AttachDialog();
-            if (mem.mProc.Process != null)
+            attachDialog.ShowDialog();
+            if (proc != null)
             {
                 return 0;
+            }
+            else
+            {
+                proc = temp;
             }
             return -1;
         }
@@ -323,10 +330,16 @@ namespace PS3Lib
         /// <summary>Attach your desired process.</summary>
         public int AttachProcess(ProcessType procType)
         {
+            Process temp = proc;
             AttachDialog attachDialog = new AttachDialog();
-            if (mem.mProc.Process != null)
+            attachDialog.ShowDialog();
+            if (proc != null)
             {
                 return 0;
+            }
+            else
+            {
+                proc = temp;
             }
             return -1;
         }
@@ -334,10 +347,22 @@ namespace PS3Lib
         /// <summary>Attach your desired process.</summary>
         public int AttachProcess(uint process)
         {
-            bool flag = mem.OpenProcess(Convert.ToInt32(process));
-            if (flag)
+            Process temp = proc;
+            try
+            {
+                 proc = Process.GetProcessById(Convert.ToInt32(process));
+            }
+            catch
+            {
+                return -1;
+            }
+            if (proc != null)
             {
                 return 0;
+            }
+            else
+            {
+                proc = temp;
             }
             return -1;
         }
@@ -386,31 +411,21 @@ namespace PS3Lib
         /// <summary>Return the current process attached. Use this function only if you called AttachProcess before.</summary>
         public uint GetAttachedProcess()
         {
-            return Convert.ToUInt32(mem.mProc.Process.Id);
+            return Convert.ToUInt32(proc.Id);
         }
 
         /// <summary>Set memory to offset (uint).</summary>
         public int SetMemory(uint offset, byte[] buffer)
         {
             ulong offset2 = Convert.ToUInt64(offset) + 0x400000000;
-            if (mem.GetCode("0x" + offset2.ToString("X"), "", 8) == UIntPtr.Zero)
-            {
-                return -1;
-            }
-            mem.WriteBytes("0x" + offset2.ToString("X"), buffer);
-            return 0;
+            return WriteBytes("0x" + offset2.ToString("X"), buffer);
         }
 
         /// <summary>Set memory to offset (ulong).</summary>
         public int SetMemory(ulong offset, byte[] buffer)
         {
             ulong offset2 = offset + 0x400000000;
-            if (mem.GetCode("0x" + offset2.ToString("X"), "", 8) == UIntPtr.Zero)
-            {
-                return -1;
-            }
-            mem.WriteBytes("0x" + offset2.ToString("X"), buffer);
-            return 0;
+            return WriteBytes("0x" + offset2.ToString("X"), buffer);
         }
 
         /// <summary>Set memory to offset (string hex).</summary>
@@ -420,11 +435,7 @@ namespace PS3Lib
             if (Type == EndianType.LittleEndian)
                 Array.Reverse(Entry);
             ulong offset2 = offset + 0x400000000;
-            if (mem.GetCode("0x" + offset2.ToString("X"), "", 8) == UIntPtr.Zero)
-            {
-                return -1;
-            }
-            mem.WriteBytes("0x" + offset2.ToString("X"), Entry);
+            WriteBytes("0x" + offset2.ToString("X"), Entry);
             return 0;
         }
 
@@ -432,7 +443,7 @@ namespace PS3Lib
         public int GetMemory(uint offset, byte[] buffer)
         {
             ulong offset2 = Convert.ToUInt64(offset) + 0x400000000;
-            byte[] getdata = mem.ReadBytes("0x" + offset2.ToString("X"), buffer.Length);
+            byte[] getdata = ReadBytes("0x" + offset2.ToString("X"), Convert.ToUInt32(buffer.Length));
             if (getdata == null)
             {
                 return -1;
@@ -448,7 +459,7 @@ namespace PS3Lib
         public int GetMemory(ulong offset, byte[] buffer)
         {
             ulong offset2 = offset + 0x400000000;
-            byte[] getdata = mem.ReadBytes("0x" + offset2.ToString("X"), buffer.Length);
+            byte[] getdata = ReadBytes("0x" + offset2.ToString("X"), Convert.ToUInt32(buffer.Length));
             if (getdata == null)
             {
                 return -1;
@@ -464,34 +475,73 @@ namespace PS3Lib
         public byte[] GetBytes(uint offset, uint length)
         {
             ulong offset2 = Convert.ToUInt64(offset) + 0x400000000;
-            return mem.ReadBytes("0x" + offset2.ToString("X"), length);
+            return ReadBytes("0x" + offset2.ToString("X"), length);
         }
 
         /// <summary>Like Get memory but this function return directly the buffer from the offset (ulong).</summary>
         public byte[] GetBytes(ulong offset, uint length)
         {
             ulong offset2 = offset + 0x400000000;
-            return mem.ReadBytes("0x" + offset2.ToString("X"), length);
+            return ReadBytes("0x" + offset2.ToString("X"), length);
         }
 
         /// <summary>Display the notify message on your PS3.</summary>
         public int Notify(NotifyIcon icon, string message)
         {
-            S::Windows.Forms.NotifyIcon N = new S::Windows.Forms.NotifyIcon();
-            return notify((int)icon, message);
+            try
+            {
+                var notification = new S::Windows.Forms.NotifyIcon()
+                {
+                    Visible = true,
+                    BalloonTipText = message,
+                    Icon = S::Drawing.SystemIcons.Application
+                };
+                if (icon == NotifyIcon.INFO)
+                    notification.Icon = S::Drawing.SystemIcons.Information;
+                if (icon == NotifyIcon.CAUTION)
+                    notification.Icon = S::Drawing.SystemIcons.Warning;
+                if (icon == NotifyIcon.WRONGWAY)
+                    notification.Icon = S::Drawing.SystemIcons.Error;
+                notification.ShowBalloonTip(5000);
+            }
+            catch
+            {
+                return -1;
+            }
+            return 0;
         }
 
         /// <summary>Display the notify message on your PS3.</summary>
         public int Notify(int icon, string message)
         {
-            return notify(icon, message);
+            try
+            {
+                var notification = new S::Windows.Forms.NotifyIcon()
+                {
+                    Visible = true,
+                    BalloonTipText = message,
+                    Icon = S::Drawing.SystemIcons.Application
+            };
+                if (icon == (int)NotifyIcon.INFO)
+                    notification.Icon = S::Drawing.SystemIcons.Information;
+                if (icon == (int)NotifyIcon.CAUTION)
+                    notification.Icon = S::Drawing.SystemIcons.Warning;
+                if (icon == (int)NotifyIcon.WRONGWAY)
+                    notification.Icon = S::Drawing.SystemIcons.Error;
+                notification.ShowBalloonTip(5000);
+            }
+            catch
+            {
+                return -1;
+            }
+            return 0;
         }
 
         /// <summary>You can shutdown the console or just reboot her according the flag selected.</summary>
         public int ShutDown(RebootFlags flag)
         {
-            mem.CloseProcess();
-            return 1;
+            proc.CloseMainWindow();
+            return 0;
         }
 
         /// <summary>Your console will emit a song.</summary>
@@ -717,6 +767,68 @@ namespace PS3Lib
                 MessageBox.Show("Incorrect value (empty)", "StringToByteArray Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new byte[1];
             }
+        }
+
+        private byte[] ReadBytes(string address, uint length)
+        {
+            ProcessManager("ReadBytes " + address + " " + length, out string bytes);
+            string[] hexPairs = bytes.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            List<byte> byteArray = new List<byte>();
+            foreach (string hexPair in hexPairs)
+            {
+                byte b = Convert.ToByte(hexPair, 16); // 16進数としてパース
+                byteArray.Add(b);
+            }
+            return byteArray.ToArray();
+        }
+        private int WriteBytes(string address, byte[] bytes)
+        {
+            StringBuilder hexString = new StringBuilder(bytes.Length * 2);
+            foreach (byte b in bytes)
+            {
+                hexString.AppendFormat("{0:X2}", b); // X2 で大文字の2桁16進数にフォーマット
+            }
+            return ProcessManager("WriteBytes " + address + " " + hexString.ToString(), out _);
+        }
+        private int ProcessManager(string arg, out string output)
+        {
+            string output2 = "";
+            ProcessStartInfo psInfo = new ProcessStartInfo();
+
+            psInfo.FileName = "MemoryPatcher.exe"; // 実行するファイル
+            psInfo.Arguments = arg + " /log /pname " + proc.ProcessName;
+            psInfo.CreateNoWindow = true; // コンソール・ウィンドウを開かない
+            psInfo.UseShellExecute = true; // シェル機能を使用する (ここを変更)
+
+            // psInfo.RedirectStandardOutput = true; // 標準出力のリダイレクトはできないので削除
+            //MessageBox.Show(psInfo.Arguments);
+            Process p = Process.Start(psInfo); // アプリの実行開始
+            p.WaitForExit(); // プロセスが終了するまで待機
+            if (File.Exists("error.txt"))
+            {
+
+                StreamReader sr = new StreamReader("error.txt", Encoding.UTF8);
+                string str = sr.ReadToEnd();
+
+                sr.Close();
+                MessageBox.Show(str, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                File.Delete("error.txt");
+            }
+            if (File.Exists("output.txt"))
+            {
+
+                StreamReader sr = new StreamReader("output.txt", Encoding.UTF8);
+
+                string str = sr.ReadToEnd();
+
+                sr.Close();
+
+                File.Delete("output.txt");
+                output2 = str;
+            }
+            output = output2;
+            return p.ExitCode; // 終了コードの取得
         }
     }
 }
