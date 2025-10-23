@@ -19,7 +19,11 @@ Once you have built it, download it from [Releases](https://github.com/knms360/E
 
 ## Credit
 Thanks Devloper:
+
 PS3Lib
+
 https://github.com/iMCSx/PS3Lib
+
 Memory.dll
+
 https://github.com/erfg12/memory.dll
