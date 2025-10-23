@@ -1,4 +1,8 @@
 # Fake_CCAPI_For_RPCS3
+## About
+### Tool for using RTM with RPCS3 (emulator)
+Fake CCAPI Library for PCAPI (RPCS3 Fix) to use RTM with RPCS3
+
 ## How to use
 1. Download PS3Lib.dll from [Releases](https://github.com/knms360/Fake_CCAPI_For_RPCS3/releases)
 2. Download MemoryPatcher.exe(x64) from [Releases](https://github.com/knms360/EasyMemoryPatcher/releases)
@@ -12,3 +16,10 @@
 
 ## Build
 Once you have built it, download it from [Releases](https://github.com/knms360/EasyMemoryPatcher/releases) and copy it to PS3Lib/bin/Debug(or Release).
+
+## Credit
+Thanks Devloper:
+PS3Lib
+https://github.com/iMCSx/PS3Lib
+Memory.dll
+https://github.com/erfg12/memory.dll
