@@ -19,7 +19,8 @@ Fake CCAPI Library for PCAPI (RPCS3 Fix) to use RTM with RPCS3
 <img width="797" height="628" alt="image" src="https://github.com/user-attachments/assets/8131a5a4-94aa-45a2-9f8a-2b0b7e00325b" />
 
 Memory.dll is a memory editor, so it will be detected by Windows Diffender.
-If you are afraid to use it, we recommend downloading it from the official github.
+
+If you are afraid to use it, we recommend downloading it from the official [github](https://github.com/erfg12/memory.dll).
 
 ## Build
 Once you have built it, download it from [Releases](https://github.com/knms360/EasyMemoryPatcher/releases) and copy it to PS3Lib/bin/Debug(or Release).
