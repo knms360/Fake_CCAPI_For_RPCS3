@@ -1,5 +1,5 @@
 # Fake_CCAPI_For_RPCS3
-[![Youtube video](https://img.youtube.com/vi/MHV3EHl3qmQ/0.jpg)](https://youtu.be/mDKUsbjIZUo)
+[![Youtube video](https://img.youtube.com/vi/mDKUsbjIZUo/0.jpg)](https://youtu.be/mDKUsbjIZUo)
 ## About
 ### Tool for using RTM with RPCS3 (emulator)
 Fake CCAPI Library for PCAPI (RPCS3 Fix) to use RTM with RPCS3
